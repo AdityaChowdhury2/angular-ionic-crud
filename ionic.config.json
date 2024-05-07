@@ -1,5 +1,8 @@
 {
   "name": "testing-crud",
-  "integrations": {},
+  "integrations": {
+    "cordova": {},
+    "capacitor": {}
+  },
   "type": "angular-standalone"
 }

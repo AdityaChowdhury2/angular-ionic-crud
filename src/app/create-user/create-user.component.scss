@@ -1,0 +1,13 @@
+.responsive-width {
+  margin: 0 auto;
+  width: 80%;
+}
+.border {
+  border: 1px solid #eee;
+}
+
+@media screen and (max-width: 768px) {
+  .responsive-width {
+    width: 95%;
+  }
+}
