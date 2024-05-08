@@ -7,15 +7,20 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'folder/:id',
-    loadComponent: () =>
-      import('./folder/folder.page').then((m) => m.FolderPage),
-  },
-  {
     path: 'create',
     loadComponent: () =>
       import('./create-user/create-user.component').then(
         (m) => m.CreateUserComponent
       ),
+  },
+  {
+    path: 'user',
+    loadComponent: () =>
+      import('./user/user.component').then((m) => m.UserComponent),
+  },
+  {
+    path: 'category',
+    loadComponent: () =>
+      import('./category/category.page').then((m) => m.CategoryPage),
   },
 ];

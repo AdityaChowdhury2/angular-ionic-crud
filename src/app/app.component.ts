@@ -1,21 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import {
-  IonApp,
-  IonSplitPane,
-  IonMenu,
-  IonContent,
-  IonList,
-  IonListHeader,
-  IonNote,
-  IonMenuToggle,
-  IonItem,
-  IonIcon,
-  IonLabel,
-  IonRouterOutlet,
-} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { IonicModule } from '@ionic/angular';
 import {
   mailOutline,
   mailSharp,
@@ -32,8 +19,13 @@ import {
   bookmarkOutline,
   bookmarkSharp,
   personAddOutline,
+  personAddSharp,
+  personOutline,
+  personSharp,
 } from 'ionicons/icons';
 import { DatabaseService } from './services/database.service';
+import { IonicStorageModule } from '@ionic/storage-angular';
+import { Storage } from '@ionic/storage-angular';
 
 @Component({
   selector: 'app-root',
@@ -44,31 +36,23 @@ import { DatabaseService } from './services/database.service';
     RouterLink,
     RouterLinkActive,
     CommonModule,
-    IonApp,
-    IonSplitPane,
-    IonMenu,
-    IonContent,
-    IonList,
-    IonListHeader,
-    IonNote,
-    IonMenuToggle,
-    IonItem,
-    IonIcon,
-    IonLabel,
-    IonRouterOutlet,
+    IonicModule,
+    IonicStorageModule,
   ],
 })
 export class AppComponent {
   public appPages = [
-    { title: 'Create', url: '/create', icon: 'person-add-outline' },
-    // { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
+    { title: 'Create', url: '/create', icon: 'person-add' },
+    // { title: 'Get', url: '/get', icon: 'person' },
+    { title: 'Outbox', url: '/category', icon: 'paper-plane' },
+    { title: 'Users', url: '/user', icon: 'person' },
     // { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
     // { title: 'Archived', url: '/folder/archived', icon: 'archive' },
     // { title: 'Trash', url: '/folder/trash', icon: 'trash' },
     // { title: 'Spam', url: '/folder/spam', icon: 'warning' },
   ];
   // public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
-  constructor(private database: DatabaseService) {
+  constructor(private database: DatabaseService, private storage: Storage) {
     addIcons({
       mailOutline,
       mailSharp,
@@ -85,11 +69,15 @@ export class AppComponent {
       bookmarkOutline,
       bookmarkSharp,
       personAddOutline,
+      personAddSharp,
+      personOutline,
+      personSharp,
     });
     this.initApp();
   }
 
   async initApp() {
     // await this.database.initializePlugin();
+    await this.storage.create();
   }
 }

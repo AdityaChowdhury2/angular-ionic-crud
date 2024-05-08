@@ -59,39 +59,35 @@ export class DatabaseService {
     this.user.set(users.values || []);
   }
 
-  async addUser(user: User): Promise<void> {
-    await this.db.run(
-      'INSERT INTO users (firstName, lastName, email, address, mobileNumber, dateOfBirth) VALUES (?, ?, ?, ?, ?, ?);',
-      [
-        user.firstName,
-        user.lastName,
-        user.email,
-        user.address,
-        user.mobileNumber,
-        user.dateOfBirth,
-      ]
-    );
-    this.loadUsers();
+  async addUser(user: User) {
+    const query = `INSERT INTO users (firstName, lastName, email, address, mobileNumber, dateOfBirth) VALUES ('${user.firstName}', '${user.lastName}', '${user.email}', '${user.address}', '${user.mobileNumber}', '${user.dateOfBirth}')`;
+    const result = await this.db.query(query);
+    console.log(result);
+    return result;
+    // await this.db.run(
+    //   'INSERT INTO users (firstName, lastName, email, address, mobileNumber, dateOfBirth) VALUES (?, ?, ?, ?, ?, ?);',
+    //   [
+    //     user.firstName,
+    //     user.lastName,
+    //     user.email,
+    //     user.address,
+    //     user.mobileNumber,
+    //     user.dateOfBirth,
+    //   ]
+    // );
+    // this.loadUsers();
   }
 
-  async updateUser(user: User): Promise<void> {
-    await this.db.run(
-      'UPDATE users SET firstName = ?, lastName = ?, email = ?, address = ?, mobileNumber = ?, dateOfBirth = ? WHERE id = ?;',
-      [
-        user.firstName,
-        user.lastName,
-        user.email,
-        user.address,
-        user.mobileNumber,
-        user.dateOfBirth,
-        user.id,
-      ]
-    );
+  async updateUserById(user: User): Promise<void> {
     this.loadUsers();
   }
 
   async deleteUser(id: string): Promise<void> {
     await this.db.run('DELETE FROM users WHERE id = ?;', [id]);
     this.loadUsers();
+  }
+
+  getUsers(): WritableSignal<User[]> {
+    return this.user;
   }
 }

@@ -1,4 +1,3 @@
-import { LocalStorageService } from './../services/local-storage.service';
 import { User } from './../services/database.service';
 import {
   IonItem,
@@ -24,15 +23,15 @@ import {
   FormControl,
   FormGroup,
   FormsModule,
-  NgModel,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 import { formatDate, isPlatformBrowser } from '@angular/common';
 import { NetworkService } from '../services/network.service';
 import { DatabaseService } from '../services/database.service';
-import { UserService } from './user.service';
+import { UserService } from '../services/user.service';
 import { Platform } from '@ionic/angular';
+import { StorageService } from '../services/storage.service';
 
 @Component({
   standalone: true,
@@ -88,8 +87,8 @@ export class CreateUserComponent {
     private toastController: ToastController,
     private networkService: NetworkService,
     private databaseService: DatabaseService,
-    private userService: UserService,
-    private localstorageService: LocalStorageService
+    private storageService: StorageService,
+    private userService: UserService // private localstorageService: LocalStorageService
   ) {
     if (this.platform.is('capacitor')) {
       this.databaseService.initializePlugin().then((success) => {
@@ -102,7 +101,7 @@ export class CreateUserComponent {
       this.presentToast('Capacitor');
     } else {
       this.platform.ready().then(() => {
-        console.log('Mobile');
+        console.log('not mobile');
       });
     }
   }
@@ -128,39 +127,68 @@ export class CreateUserComponent {
     console.log(this.userForm.value);
     const netWorkStatus = await this.networkService.checkNetworkStatus();
     this.presentToast(netWorkStatus.connected ? 'Connected' : 'Not Connected');
+    Object.assign(user, this.userForm.value);
     if (netWorkStatus.connected) {
-      Object.assign(user, this.userForm.value);
-      this.userService.addUser(user).subscribe({
-        next: (success) => {
-          console.log(success);
-          this.presentToast('User Saved Successfully');
-          this.userForm.reset();
-        },
-        error: (error) => {
-          this.presentToast(error);
-        },
+      if (this.storageService.get('users')) {
+        this.storageService.get('users').subscribe((user) => {
+          console.log(user);
+        });
+        this.storageService.get('users').subscribe((users) => {
+          const usersArray = users ? JSON.parse(users) : [];
+
+          usersArray.push(user);
+
+          this.userService.addUser(usersArray).subscribe({
+            next: (success) => {
+              console.log(success);
+              this.presentToast('User Saved Successfully');
+              this.userForm.reset();
+              this.storageService.remove('users');
+            },
+            error: (error) => {
+              this.presentToast(error);
+            },
+          });
+        });
+      } else {
+        this.userService.addUser([user]).subscribe({
+          next: (success) => {
+            console.log(success);
+            this.presentToast('User Saved Successfully');
+            this.userForm.reset();
+          },
+          error: (error) => {
+            this.presentToast(error);
+          },
+        });
+      }
+      // this.databaseService.addUser(user).then((success) => {
+      //   this.presentToast('User Saved Successfully');
+      //   this.userForm.reset();
+      // });
+      // let users = this.storageService.get('users');
+      // console.log(users);
+      // this.databaseService.addUser(user).then((success) => {
+      //   console.log(success);
+      // });
+      // this.userService.addUser(user).subscribe({
+      //   next: (success) => {
+      //     console.log(success);
+      //     this.presentToast('User Saved Successfully');
+      //     this.userForm.reset();
+      //   },
+      //   error: (error) => {
+      //     this.presentToast(error);
+      //   },
+      // });
+    } else {
+      this.storageService.get('users').subscribe((users) => {
+        const usersArray = users ? JSON.parse(users) : [];
+
+        usersArray.push(user);
+
+        this.storageService.set('users', JSON.stringify(usersArray));
       });
     }
-    // if (netWorkStatus.connected) {
-    //   this.presentToast('Connected to the internet');
-    //   console.log('Connected to the internet');
-
-    //   Object.assign(user, this.userForm.value);
-    //   this.userService.addUser(user).subscribe({
-    //     next: (success) => {
-    //       console.log(success);
-    //       this.presentToast('User Saved Successfully');
-    //       this.userForm.reset();
-    //     },
-    //     error: (error) => {
-    //       this.presentToast(error);
-    //     },
-    //   });
-    // } else {
-    //   this.presentToast(' Not Connected to the internet');
-    //   console.log('Not connected to the internet');
-    //   Object.assign(user, this.userForm.value);
-    //   this.databaseService.addUser(user);
-    // }
   }
 }
