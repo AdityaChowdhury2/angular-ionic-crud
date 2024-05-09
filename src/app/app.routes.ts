@@ -3,24 +3,33 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'create',
+    redirectTo: 'user/create',
     pathMatch: 'full',
   },
   {
-    path: 'create',
+    path: 'user/:calledFrom',
     loadComponent: () =>
       import('./create-user/create-user.component').then(
         (m) => m.CreateUserComponent
       ),
   },
   {
-    path: 'user',
+    path: 'user/:calledFrom/:id',
+    loadComponent: () =>
+      import('./create-user/create-user.component').then(
+        (m) => m.CreateUserComponent
+      ),
+  },
+  // {
+  //   path: 'edit/:id',
+  //   loadComponent: () =>
+  //     import('./create-user/create-user.component').then(
+  //       (m) => m.CreateUserComponent
+  //     ),
+  // },
+  {
+    path: 'all-users',
     loadComponent: () =>
       import('./user/user.component').then((m) => m.UserComponent),
-  },
-  {
-    path: 'category',
-    loadComponent: () =>
-      import('./category/category.page').then((m) => m.CategoryPage),
   },
 ];

@@ -26,12 +26,13 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { formatDate, isPlatformBrowser } from '@angular/common';
+import { CommonModule, formatDate, isPlatformBrowser } from '@angular/common';
 import { NetworkService } from '../services/network.service';
 import { DatabaseService } from '../services/database.service';
 import { UserService } from '../services/user.service';
 import { Platform } from '@ionic/angular';
 import { StorageService } from '../services/storage.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -59,10 +60,13 @@ import { StorageService } from '../services/storage.service';
     ReactiveFormsModule,
     FormsModule,
     ReactiveFormsModule,
+    CommonModule,
   ],
 })
 // implements OnInit
 export class CreateUserComponent {
+  calledFrom: string = '';
+  id: string = '';
   dateOfBirth: any;
   userForm = new FormGroup({
     firstName: new FormControl('', Validators.required),
@@ -84,12 +88,29 @@ export class CreateUserComponent {
   }
   constructor(
     private platform: Platform,
+    private router: Router,
+    private route: ActivatedRoute,
     private toastController: ToastController,
     private networkService: NetworkService,
     private databaseService: DatabaseService,
     private storageService: StorageService,
     private userService: UserService // private localstorageService: LocalStorageService
   ) {
+    this.calledFrom = this.route.snapshot.params['calledFrom'];
+    if (this.calledFrom === 'edit') {
+      this.calledFrom = this.route.snapshot.params['calledFrom'];
+      this.id = this.route.snapshot.params['id'];
+      this.userService.getUser(this.id).subscribe((user) => {
+        this.userForm.get('firstName')?.setValue(user.firstName);
+        this.userForm.get('lastName')?.setValue(user.lastName);
+        this.userForm.get('email')?.setValue(user.email);
+        this.userForm.get('mobileNumber')?.setValue(user.mobileNumber);
+        this.userForm.get('address')?.setValue(user.address);
+        this.userForm.get('dateOfBirth')?.setValue(user.dateOfBirth);
+      });
+    } else {
+    }
+
     if (this.platform.is('capacitor')) {
       this.databaseService.initializePlugin().then((success) => {
         if (success) {
@@ -111,8 +132,34 @@ export class CreateUserComponent {
   setDate(dateValue: any) {
     const date = new Date(dateValue);
     console.log(formatDate(date, 'yyyy-MM-dd', 'en'));
+    console.log(this.userForm.errors);
+  }
 
-    console.log(typeof date);
+  updateData() {
+    let user: User = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobileNumber: '',
+      address: '',
+      dateOfBirth: '',
+    }; // Initialize the 'user' variable
+    console.log(this.userForm.value);
+    Object.assign(user, this.userForm.value);
+    this.userService.updateUser(user, this.id).subscribe({
+      next: (success) => {
+        console.log(success);
+        this.presentToast('User Updated Successfully');
+        this.userForm.reset();
+        this.userForm.updateValueAndValidity();
+        console.log(this.userForm.errors);
+        this.userService.usersUpdated.next();
+        this.router.navigate(['/all-users']);
+      },
+      error: (error) => {
+        this.presentToast(error);
+      },
+    });
   }
 
   async saveData() {
@@ -143,7 +190,10 @@ export class CreateUserComponent {
               console.log(success);
               this.presentToast('User Saved Successfully');
               this.userForm.reset();
+              this.userForm.updateValueAndValidity();
+              console.log(this.userForm.errors);
               this.storageService.remove('users');
+              this.router.navigate(['/all-users']);
             },
             error: (error) => {
               this.presentToast(error);
@@ -156,31 +206,16 @@ export class CreateUserComponent {
             console.log(success);
             this.presentToast('User Saved Successfully');
             this.userForm.reset();
+            this.userForm.updateValueAndValidity();
+            this.userForm.get('dateOfBirth')?.setValue('');
+            console.log(this.userForm.errors);
+            this.router.navigate(['/all-users']);
           },
           error: (error) => {
             this.presentToast(error);
           },
         });
       }
-      // this.databaseService.addUser(user).then((success) => {
-      //   this.presentToast('User Saved Successfully');
-      //   this.userForm.reset();
-      // });
-      // let users = this.storageService.get('users');
-      // console.log(users);
-      // this.databaseService.addUser(user).then((success) => {
-      //   console.log(success);
-      // });
-      // this.userService.addUser(user).subscribe({
-      //   next: (success) => {
-      //     console.log(success);
-      //     this.presentToast('User Saved Successfully');
-      //     this.userForm.reset();
-      //   },
-      //   error: (error) => {
-      //     this.presentToast(error);
-      //   },
-      // });
     } else {
       this.storageService.get('users').subscribe((users) => {
         const usersArray = users ? JSON.parse(users) : [];
@@ -188,6 +223,9 @@ export class CreateUserComponent {
         usersArray.push(user);
 
         this.storageService.set('users', JSON.stringify(usersArray));
+        this.userForm.reset();
+        this.userForm.get('dateOfBirth')?.setValue('');
+        this.router.navigate(['/all-users']);
       });
     }
   }

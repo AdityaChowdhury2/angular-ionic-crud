@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { User } from '../services/database.service';
 import { CommonModule } from '@angular/common';
@@ -17,8 +17,16 @@ import {
   IonMenuButton,
   IonButtons,
   ToastController,
+  IonIcon,
+  IonItemSliding,
+  IonItemOption,
+  IonItemOptions,
 } from '@ionic/angular/standalone';
 import { StorageService } from '../services/storage.service';
+import { Subscription } from 'rxjs';
+import { addIcons } from 'ionicons';
+import { pencilOutline, pencilSharp } from 'ionicons/icons';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-user',
@@ -31,7 +39,10 @@ import { StorageService } from '../services/storage.service';
     IonToolbar,
     IonHeader,
     IonList,
+    IonItemSliding,
     IonItem,
+    IonItemOption,
+    IonItemOptions,
     IonLabel,
     IonCard,
     IonCardHeader,
@@ -39,30 +50,37 @@ import { StorageService } from '../services/storage.service';
     IonListHeader,
     IonMenuButton,
     IonButtons,
+    IonIcon,
+    RouterModule,
   ],
   standalone: true,
 })
-export class UserComponent implements OnInit {
+export class UserComponent implements OnInit, OnDestroy {
   users: User[] = [];
+
+  private usersSub: Subscription = new Subscription();
   constructor(
     private userService: UserService,
     private storageService: StorageService,
     private toastController: ToastController
-  ) {}
+  ) {
+    addIcons({
+      pencilOutline,
+      pencilSharp,
+    });
+  }
 
-  async ngOnInit() {
-    if (this.storageService.get('users')) {
-      // await this.storageService.get('users')?.then((users) => {
-      //   this.users = JSON.parse(users);
-      //   console.log(users);
-      // });
-      // this.userService.getUsers().subscribe((users) => {
-      //   this.users = users;
-      //   if (users.length !== 0) {
-      //     this.presentToast('Users fetched successfully');
-      //   }
-      // });
-    }
+  ngOnInit() {
+    this.userService.getUsers().subscribe((users) => {
+      this.users = users;
+    });
+    console.log('I am here again');
+
+    this.usersSub = this.userService.usersUpdated.subscribe(() => {
+      this.userService.getUsers().subscribe((users) => {
+        this.users = users;
+      });
+    });
   }
 
   async presentToast(message: string) {
@@ -71,5 +89,15 @@ export class UserComponent implements OnInit {
       duration: 2000,
     });
     toast.present();
+  }
+
+  removeUser(id: string) {
+    this.userService.removeUser(id)?.subscribe();
+  }
+
+  ngOnDestroy() {
+    // Unsubscribe to prevent memory leaks
+
+    this.usersSub.unsubscribe();
   }
 }

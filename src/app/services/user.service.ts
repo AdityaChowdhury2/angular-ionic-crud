@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { Injectable } from '@angular/core';
 import { User } from './database.service';
-import { map, Observable } from 'rxjs';
+import { map, Observable, Subject } from 'rxjs';
 import { HttpService } from './http.service';
 
 @Injectable({
@@ -12,6 +12,7 @@ import { HttpService } from './http.service';
 export class UserService {
   private apiEndpoint = 'http://192.168.30.232:3000/users-info';
   // private apiEndpoint = 'https://jsonplaceholder.typicode.com/users';
+  usersUpdated = new Subject<void>();
   constructor(
     private http: HttpClient,
     private nativeHttp: HttpService,
@@ -25,16 +26,36 @@ export class UserService {
   }
   getUsers(): Observable<User[]> {
     const url = this.apiEndpoint;
-    if (this.platform.is('mobileweb') || this.platform.is('desktop')) {
-      return this.http.get<User[]>(url).pipe(map((response) => response));
-    } else {
-      return this.nativeHttp
-        .getUsers()
-        .pipe(map((response: any) => response.data));
+    // if (this.platform.is('mobileweb') || this.platform.is('desktop')) {
+    return this.http.get<User[]>(url).pipe(
+      map((response) => {
+        return response;
+      })
+    );
+    // } else {
+    //   return this.nativeHttp
+    //     .getUsers()
+    //     .pipe(map((response: any) => response.data));
+    // }
+  }
+  removeUser(id: string) {
+    const url = this.apiEndpoint;
+    if (id !== '') {
+      return this.http.delete(url + '/' + id).pipe(
+        map((response) => {
+          this.usersUpdated.next();
+          return response;
+        })
+      );
     }
-    // return from(
-    //   Http.get({ url: url }).then((response) => JSON.parse(response.data))
-    // );
-    // return this.http.get<User[]>(url);
+    return null; // Add this line to return a value if the condition is not met
+  }
+  getUser(id: string): Observable<User> {
+    const url = this.apiEndpoint + '/' + id;
+    return this.http.get<User>(url);
+  }
+  updateUser(user: User, id: string): Observable<any> {
+    const url = this.apiEndpoint + '/' + id;
+    return this.http.patch<User>(url, user);
   }
 }

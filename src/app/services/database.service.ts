@@ -9,7 +9,7 @@ import { Capacitor } from '@capacitor/core';
 const DB_USERS = 'myUserDb';
 
 export interface User {
-  id?: string;
+  _id?: string;
   firstName: string;
   lastName: string;
   email: string;

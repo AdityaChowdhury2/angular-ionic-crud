@@ -42,10 +42,10 @@ import { Storage } from '@ionic/storage-angular';
 })
 export class AppComponent {
   public appPages = [
-    { title: 'Create', url: '/create', icon: 'person-add' },
+    { title: 'Create', url: '/user/create', icon: 'person-add' },
     // { title: 'Get', url: '/get', icon: 'person' },
-    { title: 'Outbox', url: '/category', icon: 'paper-plane' },
-    { title: 'Users', url: '/user', icon: 'person' },
+    // { title: 'Outbox', url: '/category', icon: 'paper-plane' },
+    { title: 'Users', url: '/all-users', icon: 'person' },
     // { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
     // { title: 'Archived', url: '/folder/archived', icon: 'archive' },
     // { title: 'Trash', url: '/folder/trash', icon: 'trash' },
